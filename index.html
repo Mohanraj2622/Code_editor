@@ -4,99 +4,352 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>VSCode Mobile</title>
-
-  <!-- Prism CSS for syntax highlighting -->
   <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
+    :root {
+      --sidebar-width: 48px;
+      --sidebar-expanded-width: 200px;
+      --topbar-height: 40px;
+      --statusbar-height: 22px;
+      --tabbar-height: 35px;
+      --accent-color: #007acc;
+      --sidebar-bg: #252526;
+      --editor-bg: #1e1e1e;
+      --tab-bg: #2d2d2d;
+      --tab-active-bg: #1e1e1e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       margin: 0;
-      background-color: #1e1e1e;
+      background-color: var(--editor-bg);
       color: white;
-      font-family: Consolas, monospace;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       overflow: hidden;
+      height: 100vh;
     }
 
+    /* Top Bar */
     .top-bar {
-      background-color: #333;
-      height: 40px;
-      line-height: 40px;
-      padding-left: 15px;
-      font-size: 16px;
-      font-weight: bold;
-      border-bottom: 1px solid #444;
-    }
-
-    .side-bar {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      bottom: 0;
-      width: 50px;
-      background-color: #252526;
+      background-color: #3c3c3c;
+      height: var(--topbar-height);
       display: flex;
-      flex-direction: column;
       align-items: center;
-      padding-top: 10px;
-      border-right: 1px solid #444;
+      padding: 0 15px;
+      font-size: 12px;
+      border-bottom: 1px solid #1a1a1a;
+      user-select: none;
     }
 
-    .side-bar .icon {
-      font-size: 22px;
-      margin: 15px 0;
+    .menu-item {
+      margin-right: 15px;
+      cursor: pointer;
+      color: #bbbbbb;
+    }
+
+    .menu-item:hover {
+      color: white;
+    }
+
+    .window-controls {
+      margin-left: auto;
+      display: flex;
+    }
+
+    .window-btn {
+      width: 46px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
     }
 
+    .window-btn:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+
+    .window-btn.close:hover {
+      background-color: #e81123;
+    }
+
+    /* Sidebar */
+    .side-bar {
+      position: absolute;
+      top: var(--topbar-height);
+      left: 0;
+      bottom: var(--statusbar-height);
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 12px;
+      border-right: 1px solid #1a1a1a;
+      transition: width 0.2s ease;
+      z-index: 10;
+    }
+
+    .side-bar:hover {
+      width: var(--sidebar-expanded-width);
+    }
+
+    .icon-container {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .icon-container:hover {
+      background-color: #2a2d2e;
+    }
+
+    .icon-container.active {
+      background-color: #37373d;
+    }
+
+    .icon-container.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background-color: var(--accent-color);
+    }
+
+    .icon {
+      font-size: 18px;
+      margin: 0 12px;
+      color: #a7a7a7;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .icon-container.active .icon {
+      color: white;
+    }
+
+    .icon-label {
+      color: #cccccc;
+      font-size: 12px;
+      margin-left: 8px;
+      opacity: 0;
+      display: none;
+      transition: opacity 0.1s ease;
+      white-space: nowrap;
+    }
+
+    .side-bar:hover .icon-label {
+      display: inline;
+      opacity: 1;
+    }
+
+    /* Tab Bar */
+    .tab-bar {
+      position: absolute;
+      top: var(--topbar-height);
+      left: var(--sidebar-width);
+      right: 0;
+      height: var(--tabbar-height);
+      background-color: var(--tab-bg);
+      display: flex;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+      border-bottom: 1px solid #252525;
+    }
+
+    .tab {
+      height: 100%;
+      padding: 0 15px;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      color: #969696;
+      border-right: 1px solid #252525;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tab.active {
+      background-color: var(--tab-active-bg);
+      color: white;
+    }
+
+    .tab i {
+      margin-left: 8px;
+      font-size: 10px;
+      opacity: 0;
+    }
+
+    .tab:hover i {
+      opacity: 0.6;
+    }
+
+    .tab:hover i:hover {
+      opacity: 1;
+    }
+
+    /* Editor */
     .editor-container {
       position: absolute;
-      top: 40px;
-      left: 50px;
+      top: calc(var(--topbar-height) + var(--tabbar-height));
+      left: var(--sidebar-width);
       right: 0;
-      bottom: 0;
-      padding: 10px;
-      white-space: pre-wrap;
+      bottom: var(--statusbar-height);
       overflow-y: auto;
       font-size: 14px;
-      background-color: #1e1e1e;
+      background-color: var(--editor-bg);
       color: #d4d4d4;
     }
 
+    .editor-gutter {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 40px;
+      background-color: #1e1e1e;
+      border-right: 1px solid #252525;
+      color: #858585;
+      font-size: 12px;
+      text-align: right;
+      padding-right: 10px;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    .editor-gutter-line {
+      min-height: 18px;
+      line-height: 18px;
+    }
+
+    .editor-content {
+      position: absolute;
+      left: 50px;
+      right: 0;
+      top: 0;
+      padding: 10px;
+      white-space: pre;
+      line-height: 18px;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--statusbar-height);
+      background-color: #007acc;
+      color: white;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      z-index: 20;
+    }
+
+    .status-item {
+      margin-right: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .status-item i {
+      margin-right: 5px;
+      font-size: 10px;
+    }
+
+    /* Popup */
     .popup {
       position: fixed;
       bottom: 70px;
-      left: 10%;
-      width: 80%;
-      background-color: #2d2d30;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 600px;
+      background-color: #252526;
       border: 1px solid #444;
-      border-radius: 8px;
+      border-radius: 4px;
       display: none;
       flex-direction: column;
       padding: 10px;
       z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .popup-title {
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .popup-close {
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .popup-close:hover {
+      opacity: 1;
     }
 
     .popup textarea {
       width: 100%;
-      height: 100px;
+      height: 150px;
       background-color: #1e1e1e;
       color: white;
-      border: none;
+      border: 1px solid #333;
+      border-radius: 2px;
       resize: none;
       padding: 8px;
       font-family: Consolas, monospace;
       font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .popup textarea:focus {
+      outline: 1px solid var(--accent-color);
+    }
+
+    .popup-footer {
+      display: flex;
+      justify-content: flex-end;
     }
 
     .popup button {
-      margin-top: 10px;
-      padding: 8px;
-      background-color: #007acc;
+      padding: 6px 12px;
+      background-color: #0e639c;
       color: white;
       border: none;
-      border-radius: 4px;
-      font-weight: bold;
+      border-radius: 2px;
+      font-size: 12px;
+      cursor: pointer;
     }
 
+    .popup button:hover {
+      background-color: #1177bb;
+    }
+
+    /* Bot Trigger */
     .bot-trigger {
       position: fixed;
       bottom: 15px;
@@ -104,65 +357,200 @@
       width: 50px;
       height: 50px;
       border-radius: 50%;
-      background-color: #007acc;
+      background-color: var(--accent-color);
       color: white;
-      font-size: 22px;
+      font-size: 20px;
       border: none;
-      box-shadow: 0 0 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
       cursor: pointer;
+      z-index: 100;
+      transition: transform 0.2s;
     }
 
+    .bot-trigger:hover {
+      transform: scale(1.05);
+    }
+
+    /* Scrollbars */
     ::-webkit-scrollbar {
-      width: 5px;
+      width: 8px;
+      height: 8px;
     }
     ::-webkit-scrollbar-thumb {
+      background: #424242;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
       background: #555;
-      border-radius: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-width: 40px;
+      }
+      
+      .side-bar:hover {
+        width: var(--sidebar-width);
+      }
+      
+      .icon-label {
+        display: none !important;
+      }
+      
+      .tab {
+        padding: 0 10px;
+        font-size: 11px;
+      }
+      
+      .popup {
+        width: 95%;
+      }
     }
   </style>
 </head>
 <body>
-
   <!-- Top Bar -->
-  <div class="top-bar">📂 VSCode Mobile</div>
+  <div class="top-bar">
+    <div class="menu-item">File</div>
+    <div class="menu-item">Edit</div>
+    <div class="menu-item">View</div>
+    <div class="menu-item">Go</div>
+    <div class="menu-item">Run</div>
+    <div class="menu-item">Terminal</div>
+    <div class="menu-item">Help</div>
+    <div class="window-controls">
+      <div class="window-btn"><i class="fas fa-minus"></i></div>
+      <div class="window-btn"><i class="fas fa-square"></i></div>
+      <div class="window-btn close"><i class="fas fa-times"></i></div>
+    </div>
+  </div>
 
   <!-- Sidebar -->
-  <div class="side-bar">
-    <div class="icon">📁</div>
-    <div class="icon">📝</div>
-    <div class="icon">⚙️</div>
+  <div class="side-bar" id="sidebar">
+    <div class="icon-container active" title="Explorer">
+      <div class="icon"><i class="fas fa-folder"></i></div>
+      <span class="icon-label">Explorer</span>
+    </div>
+    <div class="icon-container" title="Search">
+      <div class="icon"><i class="fas fa-search"></i></div>
+      <span class="icon-label">Search</span>
+    </div>
+    <div class="icon-container" title="Source Control">
+      <div class="icon"><i class="fas fa-code-branch"></i></div>
+      <span class="icon-label">Source Control</span>
+    </div>
+    <div class="icon-container" title="Run and Debug">
+      <div class="icon"><i class="fas fa-play"></i></div>
+      <span class="icon-label">Run</span>
+    </div>
+    <div class="icon-container" title="Extensions">
+      <div class="icon"><i class="fas fa-puzzle-piece"></i></div>
+      <span class="icon-label">Extensions</span>
+    </div>
+    <div class="icon-container" style="margin-top: auto;" title="Settings">
+      <div class="icon"><i class="fas fa-cog"></i></div>
+      <span class="icon-label">Settings</span>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active">index.html<i class="fas fa-times"></i></div>
+    <div class="tab">style.css<i class="fas fa-times"></i></div>
+    <div class="tab">script.js<i class="fas fa-times"></i></div>
   </div>
 
   <!-- Editor -->
-  <pre class="editor-container language-javascript"><code id="editor" class="language-javascript"></code></pre>
+  <div class="editor-container">
+    <div class="editor-gutter" id="editorGutter">
+      <div class="editor-gutter-line">1</div>
+    </div>
+    <pre class="editor-content language-javascript"><code id="editor" class="language-javascript"></code></pre>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item"><i class="fas fa-code-branch"></i> main</div>
+    <div class="status-item"><i class="fas fa-check-circle"></i> Prettier</div>
+    <div class="status-item"><i class="fas fa-globe"></i> UTF-8</div>
+    <div class="status-item"><i class="fas fa-file-code"></i> JavaScript</div>
+    <div style="margin-left: auto;" class="status-item"><i class="fas fa-clock"></i> <span id="current-time"></span></div>
+  </div>
 
   <!-- Popup -->
   <div class="popup" id="popup">
+    <div class="popup-header">
+      <div class="popup-title">Code Assistant</div>
+      <div class="popup-close" onclick="togglePopup()">×</div>
+    </div>
     <textarea id="codeInput" placeholder="Type your code here..."></textarea>
-    <button onclick="submitCode()">Submit</button>
+    <div class="popup-footer">
+      <button onclick="submitCode()">Submit</button>
+    </div>
   </div>
 
   <!-- Trigger -->
-  <button class="bot-trigger" onclick="togglePopup()">💬</button>
+  <button class="bot-trigger" onclick="togglePopup()"><i class="fas fa-robot"></i></button>
 
   <!-- Prism JS -->
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-html.min.js"></script>
 
   <script>
+    // Toggle popup visibility
     function togglePopup() {
       const popup = document.getElementById("popup");
       popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+      if (popup.style.display === "flex") {
+        document.getElementById("codeInput").focus();
+      }
     }
 
+    // Submit code to editor
     function submitCode() {
       const input = document.getElementById("codeInput").value;
       const editor = document.getElementById("editor");
       document.getElementById("popup").style.display = "none";
       editor.textContent = "";
+      updateLineNumbers(input);
       typeAndHighlight(input, editor);
     }
 
+    // Update line numbers based on content
+    function updateLineNumbers(content) {
+      const gutter = document.getElementById("editorGutter");
+      const lines = content.split('\n');
+      const lineCount = lines.length || 1;
+      
+      // Add or remove lines as needed
+      const currentLines = gutter.children.length;
+      
+      if (lineCount > currentLines) {
+        for (let i = currentLines + 1; i <= lineCount; i++) {
+          const line = document.createElement('div');
+          line.className = 'editor-gutter-line';
+          line.textContent = i;
+          gutter.appendChild(line);
+        }
+      } else if (lineCount < currentLines) {
+        while (gutter.children.length > lineCount) {
+          gutter.removeChild(gutter.lastChild);
+        }
+      }
+      
+      // Ensure at least one line is visible
+      if (gutter.children.length === 0) {
+        const line = document.createElement('div');
+        line.className = 'editor-gutter-line';
+        line.textContent = '1';
+        gutter.appendChild(line);
+      }
+    }
+
+    // Typewriter effect with syntax highlighting
     function typeAndHighlight(code, container) {
       let i = 0;
       let buffer = "";
@@ -172,14 +560,57 @@
           buffer += code.charAt(i);
           container.textContent = buffer;
           Prism.highlightElement(container);
-          container.parentElement.scrollTop = container.parentElement.scrollHeight;
+          
+          // Update line numbers in real-time
+          updateLineNumbers(buffer);
+          
+          // Auto-scroll to keep current line in view
+          const editorContainer = container.parentElement.parentElement;
+          editorContainer.scrollTop = editorContainer.scrollHeight;
+          
           i++;
-          setTimeout(typing, 20);
+          setTimeout(typing, 10);
         }
       }
 
       typing();
     }
+
+    // Update current time in status bar
+    function updateCurrentTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('current-time').textContent = timeString;
+    }
+
+    // Initialize with empty content
+    updateLineNumbers('');
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 60000); // Update time every minute
+
+    // Tab switching functionality
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Sidebar icon functionality
+    document.querySelectorAll('.icon-container').forEach(icon => {
+      icon.addEventListener('click', function() {
+        document.querySelectorAll('.icon-container').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Close button functionality for tabs
+    document.querySelectorAll('.tab i').forEach(closeBtn => {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        // Add tab closing logic here
+      });
+    });
   </script>
 </body>
 </html>
